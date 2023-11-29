@@ -4,9 +4,6 @@ from datatypes import RequestType
 from typing import List, Dict
 
 class Member:
-    
-    count = get_member_count()
-
 
     def __init__(self, cid: int, name: str, balance: int):
         self.cid = cid
@@ -42,17 +39,22 @@ class Member:
         members = []
 
         for memberq in membersq:
-            members.append(Member(
-                id=memberq.doc_id,
+            member = Member(
                 cid=memberq['cid'],
                 name=memberq['name'],
                 balance=memberq['balance'],
-            ))
+            )
+
+            member.id = memberq.doc_id
+            members.append(member)
 
         return members
     
     def exists(cid: int):
         return bool(get_member_query(cid))
+    
+    def count():
+        return get_member_count()
     
 
 class Request:
