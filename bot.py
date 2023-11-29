@@ -1,8 +1,9 @@
 import dotenv
 import json
+import settings
 from telebot import TeleBot, types
 from telebot.handler_backends import ContinueHandling
-from handlers import handle_member_status, handle_member_select
+from handlers import handle_member_status, handle_member_select, handle_menu_command
 from datatypes import StatusCode, CallbackType
 
 token = dotenv.get_key('.env', 'PRODUCTION_BOT_TOKEN')
@@ -64,5 +65,35 @@ def check_member(message):
     
     markup.add(*buttons)
     bot.send_message(message.chat.id, 'لطفا نام خود را انتخاب کنید: ', reply_markup=markup)
+
+
+@bot.message_handler(commands=['menu'])
+def send_menu(message):
+    status = handle_menu_command(message)
+
+    if status == StatusCode.members_unauthorized:
+        bot.reply_to(message, f'مدیر مخارج {settings.FINANCE_HANDLER} است.')
+
+        return
+    
+    markup = types.InlineKeyboardMarkup()
+    markup.row_width = 2
+
+    buttons = []
+
+    for option in status:
+        button = inline_btn(option['fa'], callback_data=option['callback'])
+
+        if option['solo']:
+            markup.add(button)
+
+        else:
+            buttons.append(button)
+        
+    markup.add(*buttons)
+    
+    bot.send_message(message.chat.id, 'انتخاب کنید:', reply_markup=markup)
+
+
 
 bot.polling()

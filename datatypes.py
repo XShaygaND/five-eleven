@@ -8,7 +8,11 @@ class StatusCode:
 
 
 class CallbackType:
-    members_selection = 'm_sel'
+    members_selection = 'mem_sel'
+
+    menu_new = 'men_new'
+    menu_expense_list = 'men_elist'
+    menu_members_list = 'men_mlist'
 
 
 class RequestType:

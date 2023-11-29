@@ -59,7 +59,7 @@ class Member:
 
 class Request:
 
-    def __init__(self, type: RequestType, cid: int, mlist: List[Dict[int, int]] = None, kwargs: Dict = None):
+    def __init__(self, type: RequestType, cid: int, mlist: List[List[int]] = None, kwargs: Dict = None):
         self.type = type
         self.cid = cid
         self.mlist = mlist
@@ -75,7 +75,7 @@ class Request:
         return delete_request(self.id, self.type, self.cid, self.mlist, self.kwargs)
 
     def add_message(self, cid: int, mid: int):
-        self.mlist.append({cid: mid})
+        self.mlist.append([cid, mid])
         return self.update()
 
     def get(type: RequestType, cid: int):

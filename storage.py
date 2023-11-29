@@ -48,7 +48,7 @@ def get_request_query(type: str, cid: int):
     return requestq
 
 
-def save_request(type: str, cid: int, mlist: List[Dict[int, int]], kwargs: Dict):
+def save_request(type: str, cid: int, mlist: List[List[int]], kwargs: Dict):
     query = {
         'type': type,
         'cid': cid,

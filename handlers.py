@@ -7,7 +7,7 @@ from telebot import types
 def handle_member_status(message: types.Message):
     cid = message.chat.id
     
-    if Member.count() == 6:
+    if Member.count() == len(settings.MEMBERS):
         if Member.exists(cid) or cid == settings.OWNER_CID:
             return StatusCode.members_full
 
@@ -36,7 +36,7 @@ def handle_member_select(call: types.CallbackQuery):
     elif Member.exists(cid):
         request = Request.get(RequestType.member_request, cid)
         request.delete()
-        
+
         return StatusCode.members_exists
     
     request = Request.get(RequestType.member_request, cid)
@@ -46,3 +46,13 @@ def handle_member_select(call: types.CallbackQuery):
     member.save()
 
     return StatusCode.members_created
+
+
+def handle_menu_command(message: types.Message):
+    cid = message.chat.id
+    name = Member.get(cid).name
+
+    if name != settings.FINANCE_HANDLER and cid != settings.OWNER_CID:
+        return StatusCode.members_unauthorized
+    
+    return [settings.MENU_OPTIONS[option] for option in settings.MENU_OPTIONS]
