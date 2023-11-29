@@ -4,6 +4,12 @@ class StatusCode:
     members_unauthorized = 'members_unauthorized'
     members_created = 'members_created'
 
+    requests_notfound = 'requests_notfound'
+
 
 class CallbackType:
-    members_selection = 'm_selection'
+    members_selection = 'm_sel'
+
+
+class RequestType:
+    member_request = 'm_req'

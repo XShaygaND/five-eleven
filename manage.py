@@ -1,4 +1,5 @@
 import sys
+import settings
 
 def runbot():
     from bot import bot
@@ -8,7 +9,7 @@ def runbot():
             bot.polling()
 
         except Exception as err:
-            print(err)
+            bot.send_message(settings.OWNER_CID, err)
     
 
 def truncate_db():

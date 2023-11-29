@@ -1,13 +1,14 @@
 from storage import get_member_query, get_all_members_query, get_member_count, save_member, update_member
-
+from storage import get_request_query, save_request, update_request, delete_request
+from datatypes import RequestType
+from typing import List, Dict
 
 class Member:
     
     count = get_member_count()
 
 
-    def __init__(self, id: int = None, cid:int = None, name: str = None, balance: int = None):
-        self.id = id
+    def __init__(self, cid: int, name: str, balance: int):
         self.cid = cid
         self.name = name
         self.balance = balance
@@ -27,11 +28,12 @@ class Member:
 
         if memberq:
             member = Member(
-                id=memberq.doc_id,
                 cid=memberq['cid'],
                 name=memberq['name'],
                 balance=memberq['balance'],
             )
+
+            member.id = memberq.doc_id
         
         return member
     
@@ -53,5 +55,44 @@ class Member:
         return bool(get_member_query(cid))
     
 
-#TODO: add Request
+class Request:
+
+    def __init__(self, type: RequestType, cid: int, mlist: List[Dict[int, int]] = None, kwargs: Dict = None):
+        self.type = type
+        self.cid = cid
+        self.mlist = mlist
+        self.kwargs = kwargs
+    
+    def save(self):
+        return save_request(self.type, self.cid, self.mlist, self.kwargs)
+    
+    def update(self):
+        return update_request(self.id, self.type, self.cid, self.mlist, self.kwargs)
+    
+    def delete(self):
+        return delete_request(self.id, self.type, self.cid, self.mlist, self.kwargs)
+
+    def add_message(self, cid: int, mid: int):
+        self.mlist.append({cid: mid})
+        return self.update()
+
+    def get(type: RequestType, cid: int):
+        requestq = get_request_query(type, cid)
+        request = []
+
+        if requestq:
+            request = Request(
+                type=requestq['type'],
+                cid=requestq['cid'],
+                mlist=requestq['mlist'],
+                kwargs=requestq['kwargs']
+            )
+
+            request.id = requestq.doc_id
+
+        return request
+
+    def exists(type: RequestType, cid: int):
+        return bool(get_request_query(type, cid))
+
 #TODO: add Expense
