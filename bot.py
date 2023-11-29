@@ -10,16 +10,28 @@ bot = TeleBot(token)
 
 inline_btn = types.InlineKeyboardButton
 
-@bot.callback_query_handler(func=lambda call: json.loads(call.data)['type'] == CallbackType.members_selection) #TODO: move check to handler
+@bot.callback_query_handler(func=lambda call: json.loads(call.data)['type'] == CallbackType.members_selection)
 def handle_member_select_callback(call):
     status = handle_member_select(call)
     cid = call.message.chat.id
 
-    if status == StatusCode.members_created: #TODO: check more status codes
+    if status == StatusCode.members_created:
         markup = types.ReplyKeyboardMarkup()
         mid = call.message.message_id
 
         bot.edit_message_text('خوش آمدید.', cid, mid, reply_markup=markup)
+    
+    elif status == StatusCode.members_exists:
+        markup = types.ReplyKeyboardMarkup()
+        mid = call.message.message_id
+
+        bot.edit_message_text('این کاربر قبلا ثبت نام کرده است.', cid, mid, reply_markup=markup)
+    
+    elif status == StatusCode.requests_notfound:
+        markup = types.ReplyKeyboardMarkup()
+        mid = call.message.message_id
+
+        bot.edit_message_text('خطا: درخواست شما یافت نشد!', cid, mid, reply_markup=markup)
 
 
 @bot.message_handler(func=lambda message: True)
