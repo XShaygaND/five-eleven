@@ -11,6 +11,9 @@ class Member:
         self.cid = cid
         self.name = name
         self.balance = balance
+
+    def __str__(self):
+        return self.name
     
     def save(self):
         return save_member(self.cid, self.name, self.balance)
