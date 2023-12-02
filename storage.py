@@ -1,10 +1,11 @@
 from tinydb import TinyDB, Query
-from typing import List, Dict
+from typing import List, Dict, Union
 from settings import MEDIA_DIR, DATABASE_DIR
 
 db = TinyDB('{}{}'.format(MEDIA_DIR, DATABASE_DIR))
 members = db.table('members')
 requests = db.table('requests')
+expenses = db.table('expenses')
 
 def get_member_query(cid: int):
     Member = Query()
@@ -79,3 +80,31 @@ def delete_request(id: int, type: str, cid: int, mlist: List[Dict[int, int]], kw
     }
 
     return requests.remove(query, doc_ids=[id])
+
+
+def get_expense_query(id: int):
+    return requests.get(doc_id=id)
+
+
+def save_expense(amount: int, members: list, spender: Union[str, None]):
+    query = {
+        'amount': amount,
+        'members': members,
+        'spender': spender,
+    }
+
+    return expenses.insert(query)
+
+
+def update_expense(id: int, amount: int, members: list, spender: Union[str, None]):
+    query = {
+        'amount': amount,
+        'members': members,
+        'spender': spender,
+    }
+
+    return expenses.update(query, doc_ids=[id])
+
+
+def delete_expense(id: int):
+    return expenses.remove(doc_ids=[id])

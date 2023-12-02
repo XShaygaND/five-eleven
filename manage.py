@@ -18,9 +18,16 @@ def truncate_db():
     db.drop_tables()
 
 
+def truncate_requests():
+    from storage import db
+
+    db.drop_table('requests')
+
+
 arg_funcs = {
     'run':  runbot,
     'trunc': truncate_db,
+    'truncreq': truncate_requests,
 }
 
 args = sys.argv

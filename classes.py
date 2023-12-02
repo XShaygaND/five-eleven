@@ -1,7 +1,8 @@
 from storage import get_member_query, get_all_members_query, get_member_count, save_member, update_member
 from storage import get_request_query, save_request, update_request, delete_request
+from storage import get_expense_query, save_expense, update_expense, delete_expense
 from datatypes import RequestType
-from typing import List, Dict
+from typing import List, Dict, Union
 
 class Member:
 
@@ -50,6 +51,9 @@ class Member:
 
         return members
     
+    def get_by_name(name: str):
+        return [member for member in Member.get_all() if member.name == name][0]
+    
     def exists(cid: int):
         return bool(get_member_query(cid))
     
@@ -59,7 +63,7 @@ class Member:
 
 class Request:
 
-    def __init__(self, type: RequestType, cid: int, mlist: List[List[int]] = None, kwargs: Dict = None):
+    def __init__(self, type: RequestType, cid: int, mlist: List[List[int]] = None, kwargs: Dict = {}):
         self.type = type
         self.cid = cid
         self.mlist = mlist
@@ -97,4 +101,22 @@ class Request:
     def exists(type: RequestType, cid: int):
         return bool(get_request_query(type, cid))
 
-#TODO: add Expense
+
+class Expense:
+
+    def __init__(self, amount: int = 0, members: List[Member] = [], spender: Union[Member, None] = None):
+        self.amount = amount
+        self.members = members
+        self.spender = spender
+    
+    def save(self):
+        return save_expense(self.amount, self.members, self.spender)
+
+    def update(self):
+        return update_expense(self.id, self.amount, self.members, self.spender)
+    
+    def delete(self):
+        return delete_expense(self.id)
+    
+    def get(id: int):
+        return get_expense_query(id)
