@@ -6,7 +6,7 @@ from typing import Optional, Union
 from telebot import TeleBot, types
 from telebot.handler_backends import ContinueHandling
 from handlers import handle_member_status, handle_member_select, handle_menu_command, handle_new_expense_request, handle_new_expense_request_type, handle_new_expense_request_amount
-from handlers import handle_new_expense_request_member_toggle, handle_new_expense_request_members_confirm, handle_new_expense_request_spender
+from handlers import handle_new_expense_request_member_toggle, handle_new_expense_request_members_confirm, handle_new_expense_request_spender, handle_new_expense_request_reason
 from datatypes import StatusCode, CallbackType
 
 token = dotenv.get_key('.env', 'PRODUCTION_BOT_TOKEN')
@@ -103,25 +103,8 @@ def handle_new_expense_request_menu_member_toggle(call):
             if status == StatusCode.requests_notfound:
                 bot.send_message(cid, 'خطا: درخواست شما یافت نشد!')
             
-            elif status == StatusCode.expenses_needs_spender:
-                markup = types.InlineKeyboardMarkup()
-                markup.row_width = 2
-
-                buttons = []
-
-                for member in settings.MEMBERS:
-                    query = json.dumps({
-                        'type': CallbackType.menu_expense_new_spender,
-                        'member': member,
-                    })
-                    member_btn = inline_btn(member, callback_data=query)
-                    buttons.append(member_btn)
-        
-                markup.add(*buttons)
-
-                bot.edit_message_text('لطفا شخصی که خرج کرده را اضافه کنید:', cid, mid, reply_markup=markup)
-            
             else:
+                send_expense_to_members(status)
                 send_main_menu(cid, mid)
 
         
@@ -299,9 +282,42 @@ def check_amount(message, args):
             bot.send_message(cid, 'خطا: درخواست شما یافت نشد!')
 
         else:
+            markup = types.ForceReply(input_field_placeholder='مبلغ')
+
+            msg = bot.send_message(cid, 'لطفا علت خرج را بنویسید:', reply_markup=markup)
+
+            bot.register_next_step_handler(msg, check_reason, args=[msg.message_id])
+
+            bot.delete_message(cid, orig_mid)
+
+
+def check_reason(message, args):
+    reason = message.text
+    cid = message.chat.id
+    mid = message.message_id
+    orig_mid = args[0]
+
+    bot.delete_message(cid, mid)
+
+    if reason.isdigit():
+        msg = bot.send_message(cid, 'دلیل نمیتواند عدد باشد:')
+        bot.register_next_step_handler(msg, check_reason)
+    
+    else:
+        status = handle_new_expense_request_reason(message)
+
+        if status == StatusCode.requests_notfound:
+            bot.send_message(cid, 'خطا: درخواست شما یافت نشد!')
+
+        else:
             send_expense_type_menu(cid)
 
             bot.delete_message(cid, orig_mid)
+
+
+def send_expense_to_members(query: dict):
+    for member in query:
+        bot.send_message(member, f"تراکنش جدید:\nمبلغ: {query[member]['amount']}\nعلت: {query[member]['reason']}")
 
 
 if __name__ == '__main__':

@@ -86,9 +86,10 @@ def get_expense_query(id: int):
     return requests.get(doc_id=id)
 
 
-def save_expense(amount: int, members: list, spender: Union[str, None]):
+def save_expense(amount: int, reason: str, members: list, spender: Union[str, None]):
     query = {
         'amount': amount,
+        'reason': reason,
         'members': members,
         'spender': spender,
     }
@@ -96,9 +97,10 @@ def save_expense(amount: int, members: list, spender: Union[str, None]):
     return expenses.insert(query)
 
 
-def update_expense(id: int, amount: int, members: list, spender: Union[str, None]):
+def update_expense(id: int, amount: int, reason: str, members: list, spender: Union[str, None]):
     query = {
         'amount': amount,
+        'reason': reason,
         'members': members,
         'spender': spender,
     }

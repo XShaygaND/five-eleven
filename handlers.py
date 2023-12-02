@@ -90,6 +90,17 @@ def handle_new_expense_request_amount(message: types.Message):
     request.update()
 
 
+def handle_new_expense_request_reason(message: types.Message):
+    reason = message.text
+    cid = message.chat.id
+
+    if not Request.exists(RequestType.menu_expense_new_request, cid):
+        return StatusCode.requests_notfound
+
+    request = Request.get(RequestType.menu_expense_new_request, cid)
+    request.kwargs['reason'] = reason
+    request.update()
+
 
 def handle_new_expense_request_member_toggle(call: types.CallbackQuery):
     query = json.loads(call.data)
@@ -122,16 +133,17 @@ def handle_new_expense_request_members_confirm(call: types.CallbackQuery):
         return StatusCode.requests_notfound
     
     request = Request.get(RequestType.menu_expense_new_request, cid)
-    spender = request.kwargs['room']
     amount = request.kwargs['amount']
+    reason = request.kwargs['reason']
+    spender = request.kwargs['room']
     members = request.kwargs['members']
 
-    expense = Expense(amount, members, None if spender == True else spender)
+    expense = Expense(amount, reason, members, None if spender == True else spender)
     expense.save()
 
     request.delete()
 
-    handle_expense(expense)
+    return handle_expense(expense)
     
 
 def handle_new_expense_request_spender(call: types.CallbackQuery):
@@ -149,13 +161,43 @@ def handle_new_expense_request_spender(call: types.CallbackQuery):
     
 def handle_expense(expense: Expense):
     share = expense.amount / len(expense.members)
+    members = {}
 
     for name in expense.members:
         member = Member.get_by_name(name)
         member.balance -= share
         member.update()
 
+        amount = get_amount(expense, member)
+        
+        members[member.cid] = {
+            'amount': amount,
+            'reason': expense.reason,
+        }
+
     if expense.spender:
         member = Member.get_by_name(expense.spender)
         member.balance += expense.amount
         member.update()
+
+        amount = get_amount(expense, member)
+        
+        members[member.cid] = {
+            'amount': amount,
+            'reason': expense.reason,
+        }
+
+    return members
+
+
+def get_amount(expense: Expense, member: Member): #TODO: make this handle everything
+    share = expense.amount / len(expense.members)
+    spender = expense.spender
+
+    if member == spender:
+        amount = expense.amount - share
+    
+    else:
+        amount = -share
+
+    return amount
