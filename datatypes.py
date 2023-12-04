@@ -7,8 +7,6 @@ class StatusCode:
     requests_notfound = 'requests_notfound'
     requests_exists = 'requests_exists'
 
-    expenses_needs_spender = 'expenses_needs_spender'
-
 
 class CallbackType:
     members_selection = 'mem_sel'

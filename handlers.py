@@ -173,6 +173,7 @@ def handle_expense(expense: Expense):
         members[member.cid] = {
             'amount': amount,
             'reason': expense.reason,
+            'balance': member.balance,
         }
 
     if expense.spender:
@@ -183,8 +184,9 @@ def handle_expense(expense: Expense):
         amount = get_amount(expense, member)
         
         members[member.cid] = {
-            'amount': amount,
+            'amount': amount, #fix spender
             'reason': expense.reason,
+            'balance': member.balance,
         }
 
     return members
@@ -194,7 +196,7 @@ def get_amount(expense: Expense, member: Member): #TODO: make this handle everyt
     share = expense.amount / len(expense.members)
     spender = expense.spender
 
-    if member == spender:
+    if str(member) == spender:
         amount = expense.amount - share
     
     else:

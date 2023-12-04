@@ -107,14 +107,14 @@ class Expense:
     def __init__(self, amount: int, reason: str, members: List[Member] = [], spender: Union[Member, None] = None):
         self.amount = amount
         self.reason = reason
-        self.members = members
         self.spender = spender
+        self.members = members
     
     def save(self):
-        return save_expense(self.amount, self.reason, self.members, self.spender)
+        return save_expense(self.amount, self.reason, self.spender, self.members)
 
     def update(self):
-        return update_expense(self.id, self.amount, self.reason, self.members, self.spender)
+        return update_expense(self.id, self.amount, self.reason, self.spender, self.members)
     
     def delete(self):
         return delete_expense(self.id)

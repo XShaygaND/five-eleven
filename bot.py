@@ -317,7 +317,23 @@ def check_reason(message, args):
 
 def send_expense_to_members(query: dict):
     for member in query:
-        bot.send_message(member, f"تراکنش جدید:\nمبلغ: {query[member]['amount']}\nعلت: {query[member]['reason']}")
+        message = '\n'.join([
+            'تراکنش جدید', 'علت: ' + query[member]['reason'],
+            'مبلغ: ' + per_num_format(query[member]['amount']),
+            'موجودی شما: '+ per_num_format(query[member]['balance']),
+        ])
+
+        bot.send_message(
+            member,
+            message,
+            )
+
+
+def per_num_format(number: int):
+    if number >= 0:
+        return str(number)
+    else:
+        return str(abs(number)) + '-'
 
 
 if __name__ == '__main__':
