@@ -1,6 +1,6 @@
 from storage import get_member_query, get_all_members_query, get_member_count, save_member, update_member
 from storage import get_request_query, save_request, update_request, delete_request
-from storage import get_expense_query, save_expense, update_expense, delete_expense
+from storage import get_expense_query, get_all_expenses_query, save_expense, update_expense, delete_expense
 from datatypes import RequestType
 from typing import List, Dict, Union
 
@@ -120,7 +120,40 @@ class Expense:
         return delete_expense(self.id)
     
     def get(id: int):
-        return get_expense_query(id)
+        expenseq = get_expense_query(id)
+        expense = []
+
+        if expenseq:
+            expense = Expense(
+                expenseq['amount'],
+                expenseq['reason'],
+                expenseq['members'],
+                expenseq['spender'],
+            )
+
+            expense.id = id
+        
+        return expense
+    
+    def get_all():
+        expensesq = get_all_expenses_query()
+        expenses = []
+
+        for expenseq in expensesq:
+            expense = Expense(
+                expenseq['amount'],
+                expenseq['reason'],
+                expenseq['members'],
+                expenseq['spender'],
+            )
+
+            expense.id = expenseq.doc_id
+            expenses.append(expense)
+
+        return expenses
+
+    def get_by_name(name: str):
+        return [expense for expense in Expense.get_all() if name in expense.members or expense.spender == name]
 
 #TODO: add room
 #TODO: add deposit

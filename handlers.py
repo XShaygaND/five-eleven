@@ -158,6 +158,43 @@ def handle_new_expense_request_spender(call: types.CallbackQuery):
     request.kwargs['room'] = spender
     request.update()
 
+
+def handle_expense_menu_request(call: types.CallbackQuery):
+    cid = call.message.chat.id
+    member = Member.get(cid)
+    expense_list = {}
+
+    if member.name == settings.FINANCE_HANDLER or cid == settings.OWNER_CID:
+        expenses = Expense.get_all()
+
+    else:
+        expenses = Expense.get_by_name(member.name)
+
+    for expense in expenses:
+        expense_list[expense.id] = {
+            'amount': expense.amount,
+            'reason': expense.reason,
+            'spender': expense.spender,
+            'members': expense.members,
+        }
+
+    return expense_list
+
+
+def handle_expense_details_request(call: types.CallbackQuery):
+    id = json.loads(call.data)['id']
+
+    expense = Expense.get(id)
+
+    details = {
+            'amount': expense.amount,
+            'reason': expense.reason,
+            'spender': expense.spender,
+            'members': expense.members,
+        }
+    
+    return details
+
     
 def handle_expense(expense: Expense):
     share = expense.amount / len(expense.members)
@@ -184,7 +221,7 @@ def handle_expense(expense: Expense):
         amount = get_amount(expense, member)
         
         members[member.cid] = {
-            'amount': amount, #fix spender
+            'amount': amount,
             'reason': expense.reason,
             'balance': member.balance,
         }

@@ -20,6 +20,9 @@ class CallbackType:
     menu_expense_new_members_toggle = 'men_en_mems_tog'
     menu_expense_new_spender = 'men_en_spender'
 
+    menu_expense_details = 'men_ed'
+    menu_expense_edit = 'men_ee'
+
     menu_confirm = 'men_confirm'
     menu_cancel = 'men_cancel'
 
@@ -28,3 +31,8 @@ class RequestType:
     member_request = 'mem_req'
 
     menu_expense_new_request = 'men_en_req'
+
+
+class Permissions:
+    admin = 'admin'
+    member = 'member'

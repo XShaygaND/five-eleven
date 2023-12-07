@@ -83,7 +83,11 @@ def delete_request(id: int, type: str, cid: int, mlist: List[Dict[int, int]], kw
 
 
 def get_expense_query(id: int):
-    return requests.get(doc_id=id)
+    return expenses.get(doc_id=id)
+
+
+def get_all_expenses_query():
+    return expenses.all()
 
 
 def save_expense(amount: int, reason: str, spender: Union[str, None], members: list):

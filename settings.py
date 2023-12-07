@@ -1,6 +1,6 @@
 import os
 import json
-from datatypes import CallbackType
+from datatypes import CallbackType, Permissions
 
 ## GENERAL ##
 
@@ -9,13 +9,15 @@ MEMBERS = ['Ali', 'Orod', 'Sina', 'Roham', 'Shahriar', 'Mamad']
 OWNER_CID = 479147855
 FINANCE_HANDLER = 'Ali'
 
+MAX_EXPENSE_LIST = 20
+
 
 ## MENU ##
 
 MENU_OPTIONS = {
-    'new_expense': {'fa': 'ایجاد خرج', 'callback': json.dumps({'type': CallbackType.menu_expense_new}), 'solo': True},
-    'expense_list': {'fa': 'مشاهده مخارج', 'callback': json.dumps({'type': CallbackType.menu_expense_list}), 'solo': False},
-    'members_list': {'fa': 'مشاهده اعضا', 'callback': json.dumps({'type': CallbackType.menu_members_list}), 'solo': False},
+    'new_expense': {'fa': 'ایجاد خرج', 'callback': json.dumps({'type': CallbackType.menu_expense_new}), 'solo': True, 'perms': [Permissions.admin]},
+    'expense_list': {'fa': 'مشاهده مخارج', 'callback': json.dumps({'type': CallbackType.menu_expense_list}), 'solo': False, 'perms': [Permissions.admin, Permissions.member]},
+    'members_list': {'fa': 'مشاهده اعضا', 'callback': json.dumps({'type': CallbackType.menu_members_list}), 'solo': False, 'perms': [Permissions.admin]},
 }
 
 MENU_NEW_EXPENSE = {

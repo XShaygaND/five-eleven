@@ -7,6 +7,7 @@ from telebot import TeleBot, types
 from telebot.handler_backends import ContinueHandling
 from handlers import handle_member_status, handle_member_select, handle_menu_command, handle_new_expense_request, handle_new_expense_request_type, handle_new_expense_request_amount
 from handlers import handle_new_expense_request_member_toggle, handle_new_expense_request_members_confirm, handle_new_expense_request_spender, handle_new_expense_request_reason
+from handlers import handle_expense_menu_request, handle_expense_details_request
 from datatypes import StatusCode, CallbackType
 
 token = dotenv.get_key('.env', 'PRODUCTION_BOT_TOKEN')
@@ -44,10 +45,10 @@ def handle_member_select_callback(call):
 @bot.callback_query_handler(func=lambda call: json.loads(call.data)['type'] == CallbackType.menu_expense_new)
 def handle_new_expense_menu(call):
     with lock:
-        status = handle_new_expense_request(call)
         cid = call.message.chat.id
         mid = call.message.message_id
 
+        status = handle_new_expense_request(call)
 
         if status == StatusCode.requests_exists:
             bot.send_message(cid, 'شما یک درخواست باز دارید.')
@@ -121,6 +122,38 @@ def handle_new_expense_request_menu_spender(call):
 
         else:
                 send_expense_member_toggle_menu(cid, mid)
+    
+
+@bot.callback_query_handler(func=lambda call: json.loads(call.data)['type'] == CallbackType.menu_expense_list)
+def handle_expense_list_menu(call):
+    with lock:
+        cid = call.message.chat.id
+        mid = call.message.message_id
+
+        expenses = handle_expense_menu_request(call)
+
+        send_expense_list_menu(expenses, cid, mid)
+
+
+@bot.callback_query_handler(func=lambda call: json.loads(call.data)['type'] == CallbackType.menu_expense_details)
+def handle_expense_details(call):
+    with lock:
+        cid = call.message.chat.id
+        mid = call.message.message_id
+        id = json.loads(call.data)['id']
+
+        details = handle_expense_details_request(call)
+        details['id'] = id
+        details['members'] = ' '.join(details['members'])
+        details['spender'] = details['spender'] if details['spender'] else 'اتاق'
+
+        send_expense_details_menu(details, cid, mid)
+
+    
+@bot.callback_query_handler(func=lambda call: json.loads(call.data)['type'] == CallbackType.menu_expense_edit)
+def handle_expense_edit(call):
+    with lock:
+        pass
 
 
 @bot.message_handler(func=lambda message: True)
@@ -186,7 +219,7 @@ def send_main_menu(cid: int, mid: Optional[int] = None):
         bot.edit_message_text('انتخاب کنید:', cid, mid, reply_markup=markup)
 
     
-def send_members_menu(type: CallbackType, cid: int, mid: Optional[int] = None):
+def send_members_menu(type: CallbackType, cid: int, mid: Optional[int] = None): #TODO: add permission filtered menus
     markup = types.InlineKeyboardMarkup()
     markup.row_width = 2
 
@@ -262,6 +295,77 @@ def send_expense_member_toggle_menu(cid: int, mid: Optional[int] = None, members
     else:
         bot.edit_message_text('لطفا کاربرانی که در خرج شریک اند را انتخاب کنید:', cid, mid, reply_markup=markup)
 
+    
+def send_expense_list_menu(expenses: list, cid: int, mid: Optional[int] = None):
+    markup = types.InlineKeyboardMarkup()
+    markup.row_width = 2
+
+    buttons = []
+
+    i = 0
+
+    for expense in expenses:
+        if not i < 20:
+            break
+
+        text = str(expenses[expense]['amount']) + ' | ' + expenses[expense]['reason']
+        query = json.dumps({
+            'type': CallbackType.menu_expense_details,
+            'id': expense,
+        })
+
+        expense_btn = inline_btn(text, callback_data=query)
+        buttons.append(expense_btn)
+
+        i += 1 #TODO: better code fix this
+
+    markup.add(*buttons)
+
+    if not mid:
+        bot.send_message(cid, 'لطفا یک خرج را انتخاب کنید:', reply_markup=markup)
+    
+    else:
+        bot.edit_message_text('لطفا یک خرج را انتخاب کنید:', cid, mid, reply_markup=markup)
+
+
+def send_expense_details_menu(details: dict, cid: int, mid: Optional[int] = None):
+    fa = {
+        'amount': 'مبلغ',
+        'reason': 'علت',
+        'spender': 'مخرج',
+        'members': 'اعضا',
+    }
+
+    markup = types.InlineKeyboardMarkup()
+    markup.row_width = 2
+
+    buttons = []
+    text = ''
+
+    for detail in details:
+        if detail == 'id': #TODO: bruh
+            continue
+
+        query = json.dumps({
+            'type': CallbackType.menu_expense_edit,
+            'id': details['id'],
+            'action': detail,
+        })
+
+        text += fa[detail] + ': ' + str(details[detail]) + '\n'
+        buttons.append(inline_btn(fa[detail], callback_data=query))
+
+    markup.add(*buttons)
+
+    text += 'یکی از موارد را برای ویرایش انتخاب کنید:'
+
+    if not mid:
+        bot.send_message(cid, text, reply_markup=markup)
+        
+    else:
+        bot.edit_message_text(text, cid, mid, reply_markup=markup)
+
+
 
 def check_amount(message, args):
     amount = message.text
@@ -282,7 +386,7 @@ def check_amount(message, args):
             bot.send_message(cid, 'خطا: درخواست شما یافت نشد!')
 
         else:
-            markup = types.ForceReply(input_field_placeholder='مبلغ')
+            markup = types.ForceReply(input_field_placeholder='علت')
 
             msg = bot.send_message(cid, 'لطفا علت خرج را بنویسید:', reply_markup=markup)
 
